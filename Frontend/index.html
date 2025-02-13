@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Payment Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Debt Payment Calculator</h2>
+        <input type="number" id="debtAmount" placeholder="Enter Debt Amount ($)" />
+        <input type="date" id="startDate" />
+        <input type="number" id="weeks" placeholder="Number of Weeks" />
+        <button onclick="calculatePayments()">Calculate</button>
+        <p class="error" id="error"></p>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        async function calculatePayments() {
+            const debt = document.getElementById("debtAmount").value;
+            const startDate = document.getElementById("startDate").value;
+            const weeks = document.getElementById("weeks").value;
+            const errorElement = document.getElementById("error");
+            const resultElement = document.getElementById("result");
+
+            errorElement.textContent = "";
+            resultElement.innerHTML = "";
+
+            if (!debt || !startDate || !weeks) {
+                errorElement.textContent = "Please fill in all fields.";    
+                return;
+            }
+
+            try {
+                const response = await fetch("https://debt-calculator-g56j.onrender.com/calculate-payments", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        debt: parseFloat(debt),
+                        start_date: startDate,
+                        weeks: parseInt(weeks, 10)
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Error fetching schedule.");
+                }
+
+                const data = await response.json();
+                resultElement.innerHTML = "<h3>Payment Schedule</h3><ul>";
+                data.payments.forEach(payment => {
+                    resultElement.innerHTML += `<li>${payment.date} (${payment.day}): <strong>$${payment.amount.toFixed(2)}</strong></li>`;
+                });
+                resultElement.innerHTML += "</ul>";
+
+            } catch (error) {
+                errorElement.textContent = error.message;
+            }
+        }
+    </script>
+</body>
+</html>
