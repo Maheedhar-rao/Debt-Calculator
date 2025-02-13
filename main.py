@@ -1,10 +1,23 @@
 from fastapi import FastAPI, HTTPException
 from datetime import datetime, timedelta
+from fastapi.middleware.cors import CORSMiddleware
 import calendar
 from pydantic import BaseModel
 from typing import List
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
+
+@app.get("/")
+def read_root():
+    return {"message": "FastAPI is running"}
 
 US_HOLIDAYS = {
     "New Year's Day": "01-01",
